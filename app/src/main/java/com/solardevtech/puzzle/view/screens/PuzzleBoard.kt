@@ -14,157 +14,87 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import kotlin.math.abs
+import com.solardevtech.puzzle.view.components.PuzzlePieceComponent
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 @Composable
-fun NumberPuzzleGame() {
-    val gridSize = 3
-    val totalPieces = gridSize * gridSize
-
+fun NumberPuzzleGame(viewModel: PuzzleViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
     val configuration = LocalConfiguration.current
     val density = LocalDensity.current
 
-    // Ekran boyutları piksel cinsinden
     val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }
     val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }
 
     val puzzleSizeDp = 300.dp
-    val pieceSizeDp = puzzleSizeDp / gridSize
+    val pieceSizeDp = puzzleSizeDp / 3
     val puzzleSizePx = with(density) { puzzleSizeDp.toPx() }
     val pieceSizePx = with(density) { pieceSizeDp.toPx() }
 
-    // Puzzle grid ortada olacak
     val puzzleLeftPx = (screenWidthPx - puzzleSizePx) / 2f
     val puzzleTopPx = (screenHeightPx - puzzleSizePx) / 2f
     val puzzleRightPx = puzzleLeftPx + puzzleSizePx
     val puzzleBottomPx = puzzleTopPx + puzzleSizePx
 
-    // Doğru pozisyonlar puzzle grid içinde (ekran koordinatları)
-    val correctPositions = List(totalPieces) { index ->
-        val row = index / gridSize
-        val col = index % gridSize
-        Offset(puzzleLeftPx + col * pieceSizePx, puzzleTopPx + row * pieceSizePx)
+    val pieces = viewModel.pieces
+    val gameCompleted by viewModel.gameCompleted
+
+    LaunchedEffect(puzzleLeftPx, puzzleTopPx, pieceSizePx) {
+        viewModel.initPositions(puzzleLeftPx, puzzleTopPx, pieceSizePx)
     }
-
-    // Parçaların rastgele pozisyonları (tüm ekran içinde)
-    val piecesPositions = remember {
-        mutableStateListOf<Offset>().apply {
-            for (i in 0 until totalPieces) {
-                add(
-                    Offset(
-                        x = Random.nextFloat() * (screenWidthPx - pieceSizePx),
-                        y = Random.nextFloat() * (screenHeightPx - pieceSizePx)
-                    )
-                )
-            }
-        }
-    }
-
-    val snapped = remember { mutableStateListOf<Boolean>().apply { repeat(totalPieces) { add(false) } } }
-    val snapThreshold = pieceSizePx / 3f
-
-    var gameCompleted by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
+        modifier = Modifier.fillMaxSize().background(Color.White)
     ) {
-        // Grid çizgileri ve dış çerçeve (hazır ölçülerle)
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeWidth = 2f
-            val step = puzzleSizePx / gridSize
+            val step = puzzleSizePx / 3
 
-            // Dikey çizgiler
-            for (i in 1 until gridSize) {
+            for (i in 1 until 3) {
                 val x = puzzleLeftPx + i * step
-                drawLine(
-                    color = Color.Black,
-                    start = Offset(x, puzzleTopPx),
-                    end = Offset(x, puzzleBottomPx),
-                    strokeWidth = strokeWidth
-                )
+                drawLine(Color.Black, Offset(x, puzzleTopPx), Offset(x, puzzleBottomPx), strokeWidth)
             }
-            // Yatay çizgiler
-            for (i in 1 until gridSize) {
+            for (i in 1 until 3) {
                 val y = puzzleTopPx + i * step
-                drawLine(
-                    color = Color.Black,
-                    start = Offset(puzzleLeftPx, y),
-                    end = Offset(puzzleRightPx, y),
-                    strokeWidth = strokeWidth
-                )
+                drawLine(Color.Black, Offset(puzzleLeftPx, y), Offset(puzzleRightPx, y), strokeWidth)
             }
-            // Dış çerçeve
             drawRect(
-                color = Color.Black,
+                Color.Black,
                 topLeft = Offset(puzzleLeftPx, puzzleTopPx),
                 size = androidx.compose.ui.geometry.Size(puzzleSizePx, puzzleSizePx),
-                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+                style = androidx.compose.ui.graphics.drawscope.Stroke(strokeWidth)
             )
         }
 
-        // Parçalar (kutular + sayılar)
-        for (i in 0 until totalPieces) {
-            val pos = piecesPositions[i]
-            val correctPos = correctPositions[i]
-
+        pieces.forEach { piece ->
             Box(
                 modifier = Modifier
-                    .offset { IntOffset(pos.x.roundToInt(), pos.y.roundToInt()) }
+                    .offset { IntOffset(piece.currentPosition.x.roundToInt(), piece.currentPosition.y.roundToInt()) }
                     .size(pieceSizeDp)
                     .background(Color.LightGray),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = i.toString(),
+                    text = piece.id.toString(),
                     style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                     color = Color.Black
                 )
             }
 
-            Box(
-                modifier = Modifier
-                    .offset { IntOffset(pos.x.roundToInt(), pos.y.roundToInt()) }
-                    .size(pieceSizeDp)
-                    .pointerInput(i) {
-                        detectDragGestures(
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                if (!snapped[i]) {
-                                    val newX = (piecesPositions[i].x + dragAmount.x).coerceIn(0f, screenWidthPx - pieceSizePx)
-                                    val newY = (piecesPositions[i].y + dragAmount.y).coerceIn(0f, screenHeightPx - pieceSizePx)
-                                    piecesPositions[i] = Offset(newX, newY)
-                                }
-                            },
-                            onDragEnd = {
-                                val currentPos = piecesPositions[i]
-                                val distX = abs(currentPos.x - correctPos.x)
-                                val distY = abs(currentPos.y - correctPos.y)
-                                if (distX < snapThreshold && distY < snapThreshold) {
-                                    piecesPositions[i] = correctPos
-                                    snapped[i] = true
-                                    if (snapped.all { it }) {
-                                        gameCompleted = true
-                                    }
-                                }
-                            }
-                        )
-                    }
+            PuzzlePieceComponent(
+                piece = piece,
+                pieceSizeDp = pieceSizeDp,
+                onDrag = { dx, dy -> viewModel.onDrag(piece.id, dx, dy, screenWidthPx, screenHeightPx) },
+                onDragEnd = { viewModel.onDragEnd(piece.id) }
             )
         }
 
         if (gameCompleted) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xAA000000)),
+                Modifier.fillMaxSize().background(Color(0xAA000000)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Tebrikler! Puzzle tamamlandı.",
+                    "Tebrikler! Puzzle tamamlandı.",
                     color = Color.White,
                     style = MaterialTheme.typography.headlineMedium
                 )

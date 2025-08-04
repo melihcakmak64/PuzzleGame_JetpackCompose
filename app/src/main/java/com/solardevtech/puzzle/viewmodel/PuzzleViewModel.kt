@@ -1,123 +1,90 @@
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
-import com.solardevtech.puzzle.model.PuzzleGameState
+import androidx.lifecycle.viewModelScope
+import androidx.compose.ui.geometry.Offset
 import com.solardevtech.puzzle.model.PuzzlePiece
+import kotlin.random.Random
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlin.random.Random
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 
-class PuzzleGameViewModel : ViewModel() {
-    private val _gameState = MutableStateFlow(PuzzleGameState())
-    val gameState: StateFlow<PuzzleGameState> = _gameState.asStateFlow()
+class PuzzleViewModel : ViewModel() {
+    private val gridSize = 3
+    private val totalPieces = gridSize * gridSize
 
-    init {
-        initializeGame()
-    }
+    private var puzzleLeftPx = 0f
+    private var puzzleTopPx = 0f
+    private var pieceSizePx = 0f
 
-    private fun initializeGame() {
-        val pieces = mutableListOf<PuzzlePiece>()
-        val positions = mutableListOf<Pair<Int, Int>>()
+    private val _pieces = mutableStateListOf<PuzzlePiece>()
+    val pieces: List<PuzzlePiece> get() = _pieces
 
-        // 3x3 grid için tüm pozisyonları oluştur
-        for (row in 0 until 3) {
-            for (col in 0 until 3) {
-                positions.add(Pair(row, col))
-            }
+    private val _gameCompleted = mutableStateOf(false)
+    val gameCompleted: State<Boolean> get() = _gameCompleted
+
+    fun initPositions(puzzleLeftPx: Float, puzzleTopPx: Float, pieceSizePx: Float) {
+        this.puzzleLeftPx = puzzleLeftPx
+        this.puzzleTopPx = puzzleTopPx
+        this.pieceSizePx = pieceSizePx
+
+        val correctPositions = List(totalPieces) { index ->
+            val row = index / gridSize
+            val col = index % gridSize
+            Offset(puzzleLeftPx + col * pieceSizePx, puzzleTopPx + row * pieceSizePx)
         }
 
-        // Pozisyonları karıştır
-        positions.shuffle(Random.Default)
+        _pieces.clear()
 
-        // Parçaları oluştur
-        for (i in 0 until 9) {
-            val correctRow = i / 3
-            val correctCol = i % 3
-            val currentPosition = positions[i]
-
-            pieces.add(
+        val random = Random(System.currentTimeMillis())
+        repeat(totalPieces) { i ->
+            _pieces.add(
                 PuzzlePiece(
                     id = i,
-                    correctRow = correctRow,
-                    correctCol = correctCol,
-                    currentRow = currentPosition.first,
-                    currentCol = currentPosition.second
+                    correctPosition = correctPositions[i],
+                    currentPosition = Offset(
+                        x = random.nextFloat() * (puzzleLeftPx * 2 + pieceSizePx),
+                        y = random.nextFloat() * (puzzleTopPx * 2 + pieceSizePx)
+                    ),
+                    isSnapped = false
                 )
             )
         }
 
-        _gameState.value = PuzzleGameState(pieces = pieces)
+        _gameCompleted.value = false
     }
 
-    fun startDragging(pieceId: Int) {
-        val currentPieces = _gameState.value.pieces.toMutableList()
-        val index = currentPieces.indexOfFirst { it.id == pieceId }
+    private val snapThreshold by lazy { pieceSizePx / 3f }
 
-        if (index != -1) {
-            currentPieces[index] = currentPieces[index].copy(isDragging = true)
-            _gameState.value = _gameState.value.copy(pieces = currentPieces)
+    fun onDrag(pieceId: Int, dragAmountX: Float, dragAmountY: Float, screenWidthPx: Float, screenHeightPx: Float) {
+        val index = _pieces.indexOfFirst { it.id == pieceId }
+        if (index == -1) return
+        val piece = _pieces[index]
+        if (piece.isSnapped) return
+
+        val newX = (piece.currentPosition.x + dragAmountX).coerceIn(0f, screenWidthPx - pieceSizePx)
+        val newY = (piece.currentPosition.y + dragAmountY).coerceIn(0f, screenHeightPx - pieceSizePx)
+
+        _pieces[index] = piece.copy(currentPosition = Offset(newX, newY))
+    }
+
+    fun onDragEnd(pieceId: Int) {
+        val index = _pieces.indexOfFirst { it.id == pieceId }
+        if (index == -1) return
+        val piece = _pieces[index]
+
+        val distX = abs(piece.currentPosition.x - piece.correctPosition.x)
+        val distY = abs(piece.currentPosition.y - piece.correctPosition.y)
+
+        if (distX < snapThreshold && distY < snapThreshold) {
+            _pieces[index] = piece.copy(currentPosition = piece.correctPosition, isSnapped = true)
+            checkGameCompleted()
         }
     }
 
-    fun updatePieceOffset(pieceId: Int, offsetX: Float, offsetY: Float) {
-        val currentPieces = _gameState.value.pieces.toMutableList()
-        val index = currentPieces.indexOfFirst { it.id == pieceId }
-
-        if (index != -1) {
-            currentPieces[index] = currentPieces[index].copy(
-                offsetX = offsetX,
-                offsetY = offsetY
-            )
-            _gameState.value = _gameState.value.copy(pieces = currentPieces)
+    private fun checkGameCompleted() {
+        if (_pieces.all { it.isSnapped }) {
+            _gameCompleted.value = true
         }
-    }
-
-    fun dropPiece(pieceId: Int, dropX: Float, dropY: Float, cellSize: Float) {
-        val currentPieces = _gameState.value.pieces.toMutableList()
-        val index = currentPieces.indexOfFirst { it.id == pieceId }
-
-        if (index != -1) {
-            val piece = currentPieces[index]
-
-            // Hangi hücreye en yakın olduğunu hesapla
-            val targetRow = ((dropY / cellSize).toInt()).coerceIn(0, 2)
-            val targetCol = ((dropX / cellSize).toInt()).coerceIn(0, 2)
-
-            // Hedef pozisyonda başka parça var mı kontrol et
-            val targetOccupied = currentPieces.any {
-                it.id != pieceId && it.currentRow == targetRow && it.currentCol == targetCol
-            }
-
-            if (!targetOccupied) {
-                // Parçayı yeni pozisyona yerleştir
-                currentPieces[index] = piece.copy(
-                    currentRow = targetRow,
-                    currentCol = targetCol,
-                    offsetX = 0f,
-                    offsetY = 0f,
-                    isDragging = false
-                )
-            } else {
-                // Eski pozisyona geri dön
-                currentPieces[index] = piece.copy(
-                    offsetX = 0f,
-                    offsetY = 0f,
-                    isDragging = false
-                )
-            }
-
-            _gameState.value = _gameState.value.copy(pieces = currentPieces)
-            checkWinCondition()
-        }
-    }
-
-    private fun checkWinCondition() {
-        val allCorrect = _gameState.value.pieces.all { it.isInCorrectPosition }
-        if (allCorrect && !_gameState.value.isGameWon) {
-            _gameState.value = _gameState.value.copy(isGameWon = true)
-        }
-    }
-
-    fun resetGame() {
-        initializeGame()
     }
 }

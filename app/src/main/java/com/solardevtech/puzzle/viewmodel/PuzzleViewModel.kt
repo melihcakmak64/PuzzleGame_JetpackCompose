@@ -1,5 +1,6 @@
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.compose.ui.geometry.Offset
 import com.solardevtech.puzzle.model.PuzzlePiece
 import kotlin.random.Random

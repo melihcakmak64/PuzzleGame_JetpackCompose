@@ -1,17 +1,16 @@
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.solardevtech.puzzle.view.components.GridPuzzleBoard
 import com.solardevtech.puzzle.view.components.PuzzlePieceComponent
 import kotlin.math.roundToInt
 
@@ -30,8 +29,6 @@ fun NumberPuzzleGame(viewModel: PuzzleViewModel = androidx.lifecycle.viewmodel.c
 
     val puzzleLeftPx = (screenWidthPx - puzzleSizePx) / 2f
     val puzzleTopPx = (screenHeightPx - puzzleSizePx) / 2f
-    val puzzleRightPx = puzzleLeftPx + puzzleSizePx
-    val puzzleBottomPx = puzzleTopPx + puzzleSizePx
 
     val pieces = viewModel.pieces
     val gameCompleted by viewModel.gameCompleted
@@ -43,25 +40,7 @@ fun NumberPuzzleGame(viewModel: PuzzleViewModel = androidx.lifecycle.viewmodel.c
     Box(
         modifier = Modifier.fillMaxSize().background(Color.White)
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val strokeWidth = 2f
-            val step = puzzleSizePx / 3
-
-            for (i in 1 until 3) {
-                val x = puzzleLeftPx + i * step
-                drawLine(Color.Black, Offset(x, puzzleTopPx), Offset(x, puzzleBottomPx), strokeWidth)
-            }
-            for (i in 1 until 3) {
-                val y = puzzleTopPx + i * step
-                drawLine(Color.Black, Offset(puzzleLeftPx, y), Offset(puzzleRightPx, y), strokeWidth)
-            }
-            drawRect(
-                Color.Black,
-                topLeft = Offset(puzzleLeftPx, puzzleTopPx),
-                size = androidx.compose.ui.geometry.Size(puzzleSizePx, puzzleSizePx),
-                style = androidx.compose.ui.graphics.drawscope.Stroke(strokeWidth)
-            )
-        }
+        GridPuzzleBoard(puzzleSizePx= with(density) { puzzleSizeDp.toPx() }, puzzleLeftPx = puzzleLeftPx, puzzleTopPx =puzzleTopPx)
 
         pieces.forEach { piece ->
             Box(

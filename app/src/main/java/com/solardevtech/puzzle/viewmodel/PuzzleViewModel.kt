@@ -1,12 +1,8 @@
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.compose.ui.geometry.Offset
 import com.solardevtech.puzzle.model.PuzzlePiece
 import kotlin.random.Random
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 class PuzzleViewModel : ViewModel() {

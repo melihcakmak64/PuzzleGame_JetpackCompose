@@ -1,5 +1,8 @@
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -7,12 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.solardevtech.puzzle.view.components.GridPuzzleBoard
 import com.solardevtech.puzzle.view.components.PuzzlePieceComponent
-import kotlin.math.roundToInt
 
 @Composable
 fun NumberPuzzleGame(viewModel: PuzzleViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
@@ -37,32 +37,22 @@ fun NumberPuzzleGame(viewModel: PuzzleViewModel = androidx.lifecycle.viewmodel.c
         viewModel.initPositions(puzzleLeftPx, puzzleTopPx, pieceSizePx)
     }
 
-    Box(
+    Scaffold(
         modifier = Modifier.fillMaxSize().background(Color.White)
     ) {
-        GridPuzzleBoard(puzzleSizePx= with(density) { puzzleSizeDp.toPx() }, puzzleLeftPx = puzzleLeftPx, puzzleTopPx =puzzleTopPx)
+        innerPadding->
+        Column (modifier = Modifier.fillMaxSize().padding(innerPadding), verticalArrangement = Arrangement.SpaceBetween){
+            GridPuzzleBoard(puzzleSizePx= with(density) { puzzleSizeDp.toPx() }, puzzleLeftPx = puzzleLeftPx, puzzleTopPx =puzzleTopPx)
+            LazyRow (modifier = Modifier.wrapContentHeight()){
+                items(pieces){
+                        piece ->
+                    PuzzlePieceComponent(
+                        piece = piece,
+                        pieceSizeDp = pieceSizeDp,
+                        )
+                }
 
-        pieces.forEach { piece ->
-            Box(
-                modifier = Modifier
-                    .offset { IntOffset(piece.currentPosition.x.roundToInt(), piece.currentPosition.y.roundToInt()) }
-                    .size(pieceSizeDp)
-                    .background(Color.LightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = piece.id.toString(),
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black
-                )
             }
-
-            PuzzlePieceComponent(
-                piece = piece,
-                pieceSizeDp = pieceSizeDp,
-                onDrag = { dx, dy -> viewModel.onDrag(piece.id, dx, dy, screenWidthPx, screenHeightPx) },
-                onDragEnd = { viewModel.onDragEnd(piece.id) }
-            )
         }
 
         if (gameCompleted) {

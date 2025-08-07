@@ -1,7 +1,6 @@
 package com.solardevtech.puzzle.view.components
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -13,7 +12,7 @@ fun GridPuzzleBoard(
     puzzleTopPx: Float,
     puzzleSizePx: Float
 ) {
-    Canvas(modifier = Modifier.fillMaxSize()) {
+    Canvas(modifier = Modifier) {
         val puzzleRightPx = puzzleLeftPx + puzzleSizePx
         val puzzleBottomPx = puzzleTopPx + puzzleSizePx
         val strokeWidth = 2f

@@ -39,10 +39,7 @@ class PuzzleViewModel : ViewModel() {
                 PuzzlePiece(
                     id = i,
                     correctPosition = correctPositions[i],
-                    currentPosition = Offset(
-                        x = random.nextFloat() * (puzzleLeftPx * 2 + pieceSizePx),
-                        y = random.nextFloat() * (puzzleTopPx * 2 + pieceSizePx)
-                    ),
+                    currentPosition = Offset.Zero,
                     isSnapped = false
                 )
             )
@@ -78,6 +75,14 @@ class PuzzleViewModel : ViewModel() {
             checkGameCompleted()
         }
     }
+    fun startDragging(pieceId: Int) {
+        val index = _pieces.indexOfFirst { it.id == pieceId }
+        if (index != -1) {
+            _pieces[index] = _pieces[index].copy(isBeingDragged = true)
+        }
+    }
+
+
 
     private fun checkGameCompleted() {
         if (_pieces.all { it.isSnapped }) {

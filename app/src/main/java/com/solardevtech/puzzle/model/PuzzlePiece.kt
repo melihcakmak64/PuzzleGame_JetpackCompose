@@ -6,5 +6,6 @@ data class PuzzlePiece(
     val id: Int,
     val correctPosition: Offset,
     var currentPosition: Offset,
-    var isSnapped: Boolean = false
+    var isSnapped: Boolean = false,
+    val isBeingDragged: Boolean = false
 )

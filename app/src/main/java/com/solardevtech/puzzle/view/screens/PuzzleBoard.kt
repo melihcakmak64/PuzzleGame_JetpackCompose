@@ -7,15 +7,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.solardevtech.puzzle.view.components.GridPuzzleBoard
 import com.solardevtech.puzzle.view.components.PuzzlePieceComponent
 
 @Composable
-fun NumberPuzzleGame(viewModel: PuzzleViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
+fun NumberPuzzleGame(viewModel: PuzzleViewModel = viewModel()) {
     val configuration = LocalConfiguration.current
     val density = LocalDensity.current
 
@@ -38,33 +40,76 @@ fun NumberPuzzleGame(viewModel: PuzzleViewModel = androidx.lifecycle.viewmodel.c
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().background(Color.White)
-    ) {
-        innerPadding->
-        Column (modifier = Modifier.fillMaxSize().padding(innerPadding), verticalArrangement = Arrangement.SpaceBetween){
-            GridPuzzleBoard(puzzleSizePx= with(density) { puzzleSizeDp.toPx() }, puzzleLeftPx = puzzleLeftPx, puzzleTopPx =puzzleTopPx)
-            LazyRow (modifier = Modifier.wrapContentHeight()){
-                items(pieces){
-                        piece ->
-                    PuzzlePieceComponent(
-                        piece = piece,
-                        pieceSizeDp = pieceSizeDp,
-                        )
-                }
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // 🧩 Puzzle tahtası
+            GridPuzzleBoard(
+                puzzleSizePx = puzzleSizePx,
+                puzzleLeftPx = puzzleLeftPx,
+                puzzleTopPx = puzzleTopPx
+            )
 
-            }
-        }
-
-        if (gameCompleted) {
-            Box(
-                Modifier.fillMaxSize().background(Color(0xAA000000)),
-                contentAlignment = Alignment.Center
+            // 🧩 LazyRow (yalnızca sürüklenmeyen parçalar için)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Bottom
             ) {
-                Text(
-                    "Tebrikler! Puzzle tamamlandı.",
-                    color = Color.White,
-                    style = MaterialTheme.typography.headlineMedium
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(pieces.filter { !it.isBeingDragged && !it.isSnapped }) { piece ->
+                        PuzzlePieceComponent(
+                            piece = piece.copy(currentPosition = Offset.Zero),
+                            pieceSizeDp = pieceSizeDp,
+                            onDrag = { dx, dy ->
+                                viewModel.startDragging(piece.id)
+                                viewModel.onDrag(piece.id, dx, dy, screenWidthPx, screenHeightPx)
+                            },
+                            onDragEnd = {
+                                viewModel.onDragEnd(piece.id)
+                            }
+                        )
+                    }
+                }
+            }
+
+            // 🧩 Ekran üstünde serbest duran parçalar
+            pieces.filter { it.isBeingDragged && !it.isSnapped }.forEach { piece ->
+                PuzzlePieceComponent(
+                    piece = piece,
+                    pieceSizeDp = pieceSizeDp,
+                    onDrag = { dx, dy ->
+                        viewModel.onDrag(piece.id, dx, dy, screenWidthPx, screenHeightPx)
+                    },
+                    onDragEnd = {
+                        viewModel.onDragEnd(piece.id)
+                    }
                 )
+            }
+
+            // 🏁 Oyun tamamlandı
+            if (gameCompleted) {
+                Box(
+                    Modifier.fillMaxSize().background(Color(0xAA000000)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Tebrikler! Puzzle tamamlandı.",
+                        color = Color.White,
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                }
             }
         }
     }

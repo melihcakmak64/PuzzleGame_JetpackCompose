@@ -43,20 +43,6 @@ fun NumberPuzzleGame(viewModel: PuzzleViewModel = androidx.lifecycle.viewmodel.c
         GridPuzzleBoard(puzzleSizePx= with(density) { puzzleSizeDp.toPx() }, puzzleLeftPx = puzzleLeftPx, puzzleTopPx =puzzleTopPx)
 
         pieces.forEach { piece ->
-            Box(
-                modifier = Modifier
-                    .offset { IntOffset(piece.currentPosition.x.roundToInt(), piece.currentPosition.y.roundToInt()) }
-                    .size(pieceSizeDp)
-                    .background(Color.LightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = piece.id.toString(),
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.Black
-                )
-            }
-
             PuzzlePieceComponent(
                 piece = piece,
                 pieceSizeDp = pieceSizeDp,

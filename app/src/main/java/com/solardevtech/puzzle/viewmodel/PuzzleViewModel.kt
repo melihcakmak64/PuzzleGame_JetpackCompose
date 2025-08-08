@@ -1,91 +1,67 @@
-import androidx.compose.runtime.*
+package com.solardevtech.puzzle.viewmodel
+
+
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.compose.ui.geometry.Offset
-import com.solardevtech.puzzle.model.PuzzlePiece
+import androidx.compose.ui.graphics.Color
+import com.solardevtech.puzzle.model.DraggableBox
 import kotlin.random.Random
-import kotlin.math.abs
 
-class PuzzleViewModel : ViewModel() {
-    private val gridSize = 3
-    private val totalPieces = gridSize * gridSize
+class DragAndDropViewModel : ViewModel() {
 
-    private var puzzleLeftPx = 0f
-    private var puzzleTopPx = 0f
-    private var pieceSizePx = 0f
+    val cellCountPerRow = 3
+    val boxCount = 9
 
-    private val _pieces = mutableStateListOf<PuzzlePiece>()
-    val pieces: List<PuzzlePiece> get() = _pieces
+    // Tüm kutular (snapped olsun olmasın)
+    var boxList = mutableStateListOf<DraggableBox>()
 
-    private val _gameCompleted = mutableStateOf(false)
-    val gameCompleted: State<Boolean> get() = _gameCompleted
+    // Yerleşmiş kutuların pozisyonları (px cinsinden)
+    val snappedBoxes = mutableStateMapOf<Int, Offset>()
 
-    fun initPositions(puzzleLeftPx: Float, puzzleTopPx: Float, pieceSizePx: Float) {
-        this.puzzleLeftPx = puzzleLeftPx
-        this.puzzleTopPx = puzzleTopPx
-        this.pieceSizePx = pieceSizePx
+    init {
+        generateBoxes()
+    }
 
-        val correctPositions = List(totalPieces) { index ->
-            val row = index / gridSize
-            val col = index % gridSize
-            Offset(puzzleLeftPx + col * pieceSizePx, puzzleTopPx + row * pieceSizePx)
-        }
-
-        _pieces.clear()
-
-        repeat(totalPieces) { i ->
-            _pieces.add(
-                PuzzlePiece(
-                    id = i,
-                    correctPosition = correctPositions[i],
-                    currentPosition = Offset.Zero,
+    private fun generateBoxes() {
+        boxList.clear()
+        boxList.addAll(
+            List(boxCount) { id ->
+                DraggableBox(
+                    id = id,
+                    color = Color(Random.nextLong()).copy(alpha = 1f),
                     isSnapped = false
                 )
-            )
+            }
+        )
+    }
+
+    fun onDropReceived(draggedId: Int, dropPosition: Offset, gridStart: Offset, cellSizePx: Float): Boolean {
+        val cell = getCellIndexForPosition(dropPosition, gridStart, cellSizePx)
+        cell?.let { (row, col) ->
+            val expectedId = row * cellCountPerRow + col
+            if (draggedId == expectedId) {
+                val snappedPos = Offset(col * cellSizePx, row * cellSizePx)
+                snappedBoxes[draggedId] = snappedPos
+                val index = boxList.indexOfFirst { it.id == draggedId }
+                if (index != -1) {
+                    boxList[index] = boxList[index].copy(isSnapped = true)
+                }
+                return true
+            }
         }
-
-        _gameCompleted.value = false
+        return false
     }
 
-    private val snapThreshold by lazy { pieceSizePx / 3f }
-
-    fun onDrag(pieceId: Int, dragAmountX: Float, dragAmountY: Float, screenWidthPx: Float, screenHeightPx: Float) {
-        val index = _pieces.indexOfFirst { it.id == pieceId }
-        if (index == -1) return
-        val piece = _pieces[index]
-        if (piece.isSnapped) return
-
-        val newX = (piece.currentPosition.x + dragAmountX).coerceIn(0f, screenWidthPx - pieceSizePx)
-        val newY = (piece.currentPosition.y + dragAmountY).coerceIn(0f, screenHeightPx - pieceSizePx)
-
-        _pieces[index] = piece.copy(currentPosition = Offset(newX, newY))
+    private fun getCellIndexForPosition(pos: Offset, gridStartPx: Offset, cellSizePx: Float): Pair<Int, Int>? {
+        val relativeX = pos.x - gridStartPx.x
+        val relativeY = pos.y - gridStartPx.y
+        if (relativeX < 0 || relativeY < 0) return null
+        if (relativeX > cellSizePx * cellCountPerRow || relativeY > cellSizePx * cellCountPerRow) return null
+        val col = (relativeX / cellSizePx).toInt()
+        val row = (relativeY / cellSizePx).toInt()
+        return row to col
     }
 
-    fun onDragEnd(pieceId: Int) {
-        val index = _pieces.indexOfFirst { it.id == pieceId }
-        if (index == -1) return
-        val piece = _pieces[index]
-
-        val distX = abs(piece.currentPosition.x - piece.correctPosition.x)
-        val distY = abs(piece.currentPosition.y - piece.correctPosition.y)
-
-        if (distX < snapThreshold && distY < snapThreshold) {
-            _pieces[index] = piece.copy(currentPosition = piece.correctPosition, isSnapped = true, isBeingDragged = false)
-            checkGameCompleted()
-        }
-    }
-    fun startDragging(pieceId: Int) {
-        val index = _pieces.indexOfFirst { it.id == pieceId }
-        if (index != -1) {
-            _pieces[index] = _pieces[index].copy(isBeingDragged = true)
-        }
-    }
-
-
-
-    private fun checkGameCompleted() {
-        if (_pieces.all { it.isSnapped }) {
-            _gameCompleted.value = true
-        }
-    }
 }

@@ -3,6 +3,7 @@ package com.solardevtech.puzzle.view.components
 import android.content.ClipDescription
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import com.solardevtech.puzzle.viewmodel.DragAndDropViewModel
@@ -80,9 +82,17 @@ fun PuzzleGrid(
                             )
                         }
                         .size(boxSizeDp)
-                        .background(box.color)
-                )
+                ) {
+                    if (box.image != null) {
+                        Image(
+                            bitmap = box.image,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds
+                        )
+                    }
+                }
             }
+
 
     }
 }

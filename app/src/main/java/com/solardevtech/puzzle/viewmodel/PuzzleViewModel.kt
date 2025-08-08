@@ -1,11 +1,13 @@
 package com.solardevtech.puzzle.viewmodel
 
 
+import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import com.solardevtech.puzzle.model.DraggableBox
 import kotlin.random.Random
 
@@ -17,23 +19,36 @@ class DragAndDropViewModel : ViewModel() {
     // Tüm kutular (snapped olsun olmasın)
     var boxList = mutableStateListOf<DraggableBox>()
 
-
-    init {
-        generateBoxes()
-    }
-
-    private fun generateBoxes() {
+    fun generateBoxesFromImage(bitmap: Bitmap) {
         boxList.clear()
-        boxList.addAll(
-            List(boxCount) { id ->
-                DraggableBox(
-                    id = id,
-                    color = Color(Random.nextLong()).copy(alpha = 1f),
-                    isSnapped = false
+        val pieceWidth = bitmap.width / cellCountPerRow
+        val pieceHeight = bitmap.height / cellCountPerRow
+
+        val tempList = mutableListOf<DraggableBox>()
+        for (row in 0 until cellCountPerRow) {
+            for (col in 0 until cellCountPerRow) {
+                val piece = Bitmap.createBitmap(
+                    bitmap,
+                    col * pieceWidth,
+                    row * pieceHeight,
+                    pieceWidth,
+                    pieceHeight
+                )
+                tempList.add(
+                    DraggableBox(
+                        id = row * cellCountPerRow + col,
+                        image = piece.asImageBitmap(),
+                        isSnapped = false
+                    )
                 )
             }
-        )
+        }
+
+        // Karıştır (isteğe bağlı)
+       // tempList.shuffle()
+        boxList.addAll(tempList)
     }
+
 
     fun onDropReceived(draggedId: Int, dropPosition: Offset, gridStart: Offset, cellSizePx: Float): Boolean {
         val cell = getCellIndexForPosition(dropPosition, gridStart, cellSizePx)

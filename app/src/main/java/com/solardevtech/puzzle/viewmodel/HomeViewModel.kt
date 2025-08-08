@@ -1,14 +1,19 @@
 package com.solardevtech.puzzle.viewmodel
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.solardevtech.puzzle.data.repository.ImageRepository
 import com.solardevtech.puzzle.model.ImageItem
+import com.solardevtech.puzzle.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,16 +21,26 @@ class ImageViewModel @Inject constructor(
     private val repository: ImageRepository
 ) : ViewModel() {
 
-    private val _images = MutableStateFlow<List<ImageItem>>(emptyList())
-    val images: StateFlow<List<ImageItem>> = _images
+
+    private val _images = mutableStateOf<Resource<List<ImageItem>?>>(Resource.Loading())
+    val images: MutableState<Resource<List<ImageItem>?>> = _images
+
 
     init {
         loadImages()
     }
 
-    private fun loadImages() {
+     fun loadImages() {
+        _images.value=Resource.Loading()
         viewModelScope.launch {
-            _images.value = repository.fetchImages()
+
+            val result = withContext(Dispatchers.IO) {
+                repository.fetchImages()
+            }
+            _images.value = result
+
+
         }
+
     }
 }

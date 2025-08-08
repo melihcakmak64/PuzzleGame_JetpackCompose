@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
@@ -59,27 +60,28 @@ fun ImageListScreen(
                     Text("No images found.")
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(images) { image ->
-                        Card(
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxWidth()
-                                .clickable { onImageSelected(image.download_url) },
-                            elevation = CardDefaults.cardElevation()
-                        ) {
-                            Column(modifier = Modifier.padding(8.dp)) {
-                                AsyncImage(
-                                    model = image.download_url,
-                                    contentDescription = "puzzle image",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp)
-                                )
-                            }
-                        }
-                    }
-                }
+               Scaffold (modifier = Modifier.fillMaxSize()){
+                   innerPadding->
+
+                   LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                   items(images) { image ->
+                       Card(
+                           modifier = Modifier
+                               .padding(8.dp)
+                               .fillMaxWidth()
+                               .clickable { onImageSelected(image.download_url) },
+                           elevation = CardDefaults.cardElevation()
+                       ) {
+                           AsyncImage(
+                               contentScale = ContentScale.FillBounds,
+                               model = image.download_url,
+                               contentDescription = "puzzle image",
+
+                               )
+
+                       }
+                   }
+               } }
             }
         }
     }

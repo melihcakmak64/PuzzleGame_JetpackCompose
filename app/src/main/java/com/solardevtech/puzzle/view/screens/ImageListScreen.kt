@@ -31,9 +31,10 @@ fun ImageListScreen(
                     elevation = CardDefaults.cardElevation()
                 ) {
                     AsyncImage(
+                        modifier = Modifier.size(height = 300.dp, width = 500.dp),
                         model = image.download_url,
                         contentDescription = "Puzzle image",
-                        contentScale = ContentScale.FillBounds
+                        contentScale = ContentScale.Crop
                     )
                 }
             }

@@ -15,8 +15,13 @@ import com.solardevtech.puzzle.view.screens.ImageListScreen
 import com.solardevtech.puzzle.view.screens.SplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val gson = Gson()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -28,7 +33,9 @@ class MainActivity : ComponentActivity() {
                         SplashScreen(
                             onSuccess = { images ->
                                 val key = "shared_images"
-                                navController.currentBackStackEntry?.savedStateHandle?.set(key, images)
+                                // Listeyi JSON stringe çevirip kaydet
+                                val json = gson.toJson(images)
+                                navController.currentBackStackEntry?.savedStateHandle?.set(key, json)
                                 navController.navigate("list")
                             }
                         )
@@ -36,8 +43,11 @@ class MainActivity : ComponentActivity() {
 
                     composable("list") {
                         val key = "shared_images"
-                        val images =
-                            navController.previousBackStackEntry?.savedStateHandle?.get<List<ImageItem>>(key)
+                        val json = navController.previousBackStackEntry?.savedStateHandle?.get<String>(key)
+                        val images = json?.let {
+                            val type = object : TypeToken<List<ImageItem>>() {}.type
+                            gson.fromJson<List<ImageItem>>(it, type)
+                        }
                         images?.let {
                             ImageListScreen(
                                 images = it,

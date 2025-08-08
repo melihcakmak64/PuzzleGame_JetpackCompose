@@ -2,6 +2,8 @@ package com.solardevtech.puzzle.view.screens
 
 
 import PuzzleBoxList
+import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
@@ -18,9 +20,16 @@ import com.solardevtech.puzzle.R
 import com.solardevtech.puzzle.view.components.PuzzleGrid
 import com.solardevtech.puzzle.viewmodel.DragAndDropViewModel
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.core.graphics.drawable.toBitmap
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun DragAndDropWithGridScreen(
+    imageUrl: String,
     viewModel: DragAndDropViewModel = viewModel()
 ) {
     val density = LocalDensity.current
@@ -38,9 +47,13 @@ fun DragAndDropWithGridScreen(
         y = (windowSizePx.height - gridSizePx) / 2f
     )
 
-    LaunchedEffect(Unit) {
-        val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.sample)
-        viewModel.generateBoxesFromImage(bitmap)
+    LaunchedEffect(imageUrl) {
+        if (imageUrl.isNotBlank()) {
+            val bitmap = loadBitmapFromUrl(context, imageUrl)
+            if (bitmap != null) {
+                viewModel.generateBoxesFromImage(bitmap)
+            }
+        }
     }
 
     Scaffold(modifier = Modifier.fillMaxSize()) {
@@ -62,6 +75,24 @@ fun DragAndDropWithGridScreen(
                 boxList = viewModel.boxList.filter { !it.isSnapped },
                 boxSizeDp = boxSizeDp
             )
+        }
+    }
+}
+suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val loader = ImageLoader(context)
+            val request = ImageRequest.Builder(context)
+                .data(url)
+                .allowHardware(false) // bitmap olarak işlemek için gerekli
+                .build()
+            val result = loader.execute(request)
+            if (result is SuccessResult) {
+                result.drawable.toBitmap()
+            } else null
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }

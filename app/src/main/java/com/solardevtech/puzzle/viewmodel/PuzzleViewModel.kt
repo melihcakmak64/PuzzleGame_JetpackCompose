@@ -1,17 +1,25 @@
 package com.solardevtech.puzzle.viewmodel
 
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.lifecycle.viewModelScope
+import com.solardevtech.puzzle.data.repository.ImageRepository
 import com.solardevtech.puzzle.model.DraggableBox
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class DragAndDropViewModel @Inject constructor() : ViewModel(){
+class DragAndDropViewModel @Inject constructor( private val repository: ImageRepository
+) : ViewModel(){
 
     val cellCountPerRow = 3
 
@@ -44,7 +52,7 @@ class DragAndDropViewModel @Inject constructor() : ViewModel(){
         }
 
         // Karıştır (isteğe bağlı)
-       // tempList.shuffle()
+        // tempList.shuffle()
         boxList.addAll(tempList)
     }
 
@@ -73,6 +81,18 @@ class DragAndDropViewModel @Inject constructor() : ViewModel(){
         val col = (relativeX / cellSizePx).toInt()
         val row = (relativeY / cellSizePx).toInt()
         return row to col
+    }
+
+    fun loadImageAndGenerateBoxes(context: Context,url: String) {
+        viewModelScope.launch {
+
+            val bitmap = withContext(Dispatchers.IO) {
+                repository.loadBitmapFromUrl(context = context, url =url)
+            }
+            if (bitmap != null) {
+                generateBoxesFromImage(bitmap)
+            }}
+
     }
 
 }

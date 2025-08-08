@@ -50,12 +50,7 @@ fun DragAndDropWithGridScreen(
     )
 
     LaunchedEffect(imageUrl) {
-        if (imageUrl.isNotBlank()) {
-            val bitmap = loadBitmapFromUrl(context, imageUrl)
-            if (bitmap != null) {
-                viewModel.generateBoxesFromImage(bitmap)
-            }
-        }
+        viewModel.loadImageAndGenerateBoxes(context =context,url=imageUrl)
     }
 
     Scaffold(modifier = Modifier.fillMaxSize()) {

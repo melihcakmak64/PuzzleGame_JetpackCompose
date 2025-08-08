@@ -23,6 +23,7 @@ fun ImageListScreen(
     Scaffold(modifier = Modifier.fillMaxSize().appBackground()) { innerPadding ->
         LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             items(images) { image ->
+                Text(image.download_url)
                 Card(
                     modifier = Modifier
                         .padding(8.dp)

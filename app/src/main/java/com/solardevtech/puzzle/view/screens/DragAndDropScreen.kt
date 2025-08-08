@@ -4,6 +4,7 @@ package com.solardevtech.puzzle.view.screens
 import PuzzleBoxList
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -42,7 +43,8 @@ fun DragAndDropWithGridScreen(
         viewModel.generateBoxesFromImage(bitmap)
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(modifier = Modifier.fillMaxSize()) {
+        innerPadding->
         PuzzleGrid(
             viewModel = viewModel,
             gridStart = gridStart,
@@ -51,9 +53,10 @@ fun DragAndDropWithGridScreen(
         )
 
         Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 40.dp)
+            modifier = Modifier.fillMaxSize()
+                .padding(innerPadding),
+                    contentAlignment = Alignment.BottomCenter
+
         ) {
             PuzzleBoxList(
                 boxList = viewModel.boxList.filter { !it.isSnapped },

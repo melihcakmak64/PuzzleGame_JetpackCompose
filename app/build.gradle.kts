@@ -77,6 +77,10 @@ dependencies {
     implementation("androidx.hilt:hilt-work:1.2.0")
 
     //WorkManager
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.3")
+
+    //Lottie
+    implementation(libs.lottie.compose)
+
 
 }

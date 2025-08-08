@@ -4,6 +4,7 @@ package com.solardevtech.puzzle.view.screens
 import PuzzleBoxList
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -11,6 +12,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -22,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import com.solardevtech.puzzle.util.appBackground
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -56,24 +60,34 @@ fun DragAndDropWithGridScreen(
 
     Scaffold(modifier = Modifier.fillMaxSize()) {
         innerPadding->
-        PuzzleGrid(
-            viewModel = viewModel,
-            gridStart = gridStart,
-            cellSizePx = cellSizePx,
-            boxSizeDp = boxSizeDp
-        )
 
         Box(
-            modifier = Modifier.fillMaxSize()
-                .padding(innerPadding),
-                    contentAlignment = Alignment.BottomCenter
-
+            modifier = Modifier
+                .fillMaxSize()
+                .appBackground()
+                .padding(innerPadding)
         ) {
-            PuzzleBoxList(
-                boxList = viewModel.boxList.filter { !it.isSnapped },
+            PuzzleGrid(
+                viewModel = viewModel,
+                gridStart = gridStart,
+                cellSizePx = cellSizePx,
                 boxSizeDp = boxSizeDp
             )
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.BottomCenter
+
+            ) {
+                PuzzleBoxList(
+                    boxList = viewModel.boxList.filter { !it.isSnapped },
+                    boxSizeDp = boxSizeDp
+                )
+            }
         }
+
+
+
     }
 }
 suspend fun loadBitmapFromUrl(context: Context, url: String): Bitmap? {

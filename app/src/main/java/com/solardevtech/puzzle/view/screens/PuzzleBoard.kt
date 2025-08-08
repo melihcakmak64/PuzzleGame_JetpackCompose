@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -68,9 +67,9 @@ fun NumberPuzzleGame(viewModel: PuzzleViewModel = viewModel()) {
                         .padding(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(pieces.filter { !it.isBeingDragged && !it.isSnapped }) { piece ->
+                    items(pieces.filter { !it.isBeingDragged && !it.isSnapped },key ={ it.id }) { piece ->
                         PuzzlePieceComponent(
-                            piece = piece.copy(currentPosition = Offset.Zero),
+                            piece = piece,
                             pieceSizeDp = pieceSizeDp,
                             onDrag = { dx, dy ->
                                 viewModel.startDragging(piece.id)
@@ -85,7 +84,7 @@ fun NumberPuzzleGame(viewModel: PuzzleViewModel = viewModel()) {
             }
 
             // 🧩 Ekran üstünde serbest duran parçalar
-            pieces.filter { it.isBeingDragged && !it.isSnapped }.forEach { piece ->
+            pieces.filter { it.isBeingDragged || it.isSnapped }.forEach { piece ->
                 PuzzlePieceComponent(
                     piece = piece,
                     pieceSizeDp = pieceSizeDp,

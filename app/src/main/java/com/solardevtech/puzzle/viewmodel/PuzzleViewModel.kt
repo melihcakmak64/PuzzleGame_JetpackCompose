@@ -33,7 +33,6 @@ class PuzzleViewModel : ViewModel() {
 
         _pieces.clear()
 
-        val random = Random(System.currentTimeMillis())
         repeat(totalPieces) { i ->
             _pieces.add(
                 PuzzlePiece(
@@ -71,7 +70,7 @@ class PuzzleViewModel : ViewModel() {
         val distY = abs(piece.currentPosition.y - piece.correctPosition.y)
 
         if (distX < snapThreshold && distY < snapThreshold) {
-            _pieces[index] = piece.copy(currentPosition = piece.correctPosition, isSnapped = true)
+            _pieces[index] = piece.copy(currentPosition = piece.correctPosition, isSnapped = true, isBeingDragged = false)
             checkGameCompleted()
         }
     }

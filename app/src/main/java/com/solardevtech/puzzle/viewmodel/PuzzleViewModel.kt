@@ -3,18 +3,14 @@ package com.solardevtech.puzzle.viewmodel
 
 import android.graphics.Bitmap
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import com.solardevtech.puzzle.model.DraggableBox
-import kotlin.random.Random
 
 class DragAndDropViewModel : ViewModel() {
 
     val cellCountPerRow = 3
-    val boxCount = 9
 
     // Tüm kutular (snapped olsun olmasın)
     var boxList = mutableStateListOf<DraggableBox>()

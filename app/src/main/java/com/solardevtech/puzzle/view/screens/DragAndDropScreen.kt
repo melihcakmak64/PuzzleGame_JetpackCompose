@@ -1,4 +1,4 @@
-package com.solardevtech.puzzle.view
+package com.solardevtech.puzzle.view.screens
 
 
 import PuzzleBoxList
@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.solardevtech.puzzle.view.components.PuzzleGrid
 import com.solardevtech.puzzle.viewmodel.DragAndDropViewModel
 
 @SuppressLint("UnusedBoxWithConstraintsScope")

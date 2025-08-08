@@ -1,4 +1,4 @@
-package com.solardevtech.puzzle.view
+package com.solardevtech.puzzle.view.components
 
 import android.content.ClipDescription
 import androidx.compose.foundation.Canvas
@@ -68,14 +68,21 @@ fun PuzzleGrid(
             }
         }
 
-        viewModel.snappedBoxes.forEach { (id, position) ->
-            val box = viewModel.boxList.find { it.id == id }
-            Box(
-                modifier = Modifier
-                    .offset { IntOffset(position.x.roundToInt(), position.y.roundToInt()) }
-                    .size(boxSizeDp)
-                    .background(box?.color ?: Color.Gray)
-            )
-        }
+        viewModel.boxList
+            .filter { it.isSnapped }
+            .forEach { box ->
+                Box(
+                    modifier = Modifier
+                        .offset {
+                            IntOffset(
+                                box.snappedPosition!!.x.roundToInt(),
+                                box.snappedPosition.y.roundToInt()
+                            )
+                        }
+                        .size(boxSizeDp)
+                        .background(box.color)
+                )
+            }
+
     }
 }

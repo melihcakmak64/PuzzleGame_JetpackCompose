@@ -17,8 +17,6 @@ class DragAndDropViewModel : ViewModel() {
     // Tüm kutular (snapped olsun olmasın)
     var boxList = mutableStateListOf<DraggableBox>()
 
-    // Yerleşmiş kutuların pozisyonları (px cinsinden)
-    val snappedBoxes = mutableStateMapOf<Int, Offset>()
 
     init {
         generateBoxes()
@@ -43,10 +41,9 @@ class DragAndDropViewModel : ViewModel() {
             val expectedId = row * cellCountPerRow + col
             if (draggedId == expectedId) {
                 val snappedPos = Offset(col * cellSizePx, row * cellSizePx)
-                snappedBoxes[draggedId] = snappedPos
                 val index = boxList.indexOfFirst { it.id == draggedId }
                 if (index != -1) {
-                    boxList[index] = boxList[index].copy(isSnapped = true)
+                    boxList[index] = boxList[index].copy(isSnapped = true, snappedPosition = snappedPos)
                 }
                 return true
             }

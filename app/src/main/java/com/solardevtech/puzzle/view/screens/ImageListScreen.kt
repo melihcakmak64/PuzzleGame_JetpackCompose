@@ -7,12 +7,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.solardevtech.puzzle.viewmodel.ImageViewModel
+
 @Composable
 fun ImageListScreen(
     onImageSelected: (String) -> Unit,
-    viewModel: ImageViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: ImageViewModel = hiltViewModel()
 ) {
     val images by viewModel.images.collectAsState()
 

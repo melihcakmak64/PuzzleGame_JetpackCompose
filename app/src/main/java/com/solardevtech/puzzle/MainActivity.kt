@@ -11,7 +11,9 @@ import androidx.navigation.navArgument
 import com.solardevtech.puzzle.ui.theme.PuzzleTheme
 import com.solardevtech.puzzle.view.screens.DragAndDropWithGridScreen
 import com.solardevtech.puzzle.view.screens.ImageListScreen
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

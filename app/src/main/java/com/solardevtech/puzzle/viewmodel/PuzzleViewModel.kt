@@ -7,8 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import com.solardevtech.puzzle.model.DraggableBox
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-class DragAndDropViewModel : ViewModel() {
+@HiltViewModel
+class DragAndDropViewModel @Inject constructor() : ViewModel(){
 
     val cellCountPerRow = 3
 

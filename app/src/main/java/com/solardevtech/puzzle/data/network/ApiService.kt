@@ -4,8 +4,10 @@ package com.solardevtech.puzzle.data.network
 import com.solardevtech.puzzle.model.ImageItem
 import retrofit2.http.GET
 import retrofit2.http.Query
+import javax.inject.Singleton
 
-interface PicsumApiService {
+@Singleton
+interface PicsumApi {
     @GET("list")
     suspend fun getImages(
         @Query("page") page: Int = 1,

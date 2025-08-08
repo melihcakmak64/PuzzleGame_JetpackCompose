@@ -4,7 +4,6 @@ package com.solardevtech.puzzle.view.screens
 import PuzzleBoxList
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -15,12 +14,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.solardevtech.puzzle.R
 import com.solardevtech.puzzle.view.components.PuzzleGrid
 import com.solardevtech.puzzle.viewmodel.DragAndDropViewModel
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.core.graphics.drawable.toBitmap
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -30,7 +28,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun DragAndDropWithGridScreen(
     imageUrl: String,
-    viewModel: DragAndDropViewModel = viewModel()
+    viewModel: DragAndDropViewModel = hiltViewModel()
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current

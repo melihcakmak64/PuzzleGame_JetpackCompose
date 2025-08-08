@@ -28,7 +28,6 @@ class MainActivity : ComponentActivity() {
                         SplashScreen(
                             onSuccess = { images ->
                                 val key = "shared_images"
-                                // basitçe navController ile veriyi taşıyamayacağımızdan viewmodel veya shared ViewModel ile yapabilirsin.
                                 navController.currentBackStackEntry?.savedStateHandle?.set(key, images)
                                 navController.navigate("list")
                             }
